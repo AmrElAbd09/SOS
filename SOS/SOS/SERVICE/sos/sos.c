@@ -118,33 +118,42 @@ enu_sos_error_status_t sos_deinit (void)
 enu_sos_error_status_t sos_create_task (str_sos_config_task_t* str_sos_config_task)
 {
 	enu_sos_error_status_t  sos_error_status = SOS_STATUS_TASK_ADDED;
-	if (str_sos_config_task != NULLPTR)																//check on passing nullptr
-	{
-		if ( (str_sos_config_task->u16_periodicity == INVALID_PERIODICITY)		||					//check on arguments validation
-			 (str_sos_config_task->pfTask == NULLPTR)							|| 
-			 (str_sos_config_task->u16_priority > NO_OF_TASKS)					||
-			 (str_sos_config_task->u16_task_id > NO_OF_TASKS) )
-			{
-			sos_error_status = SOS_STATUS_INVALID_ARGS;
-			}
 	
-		for (u8 L_index = INITIAL_START; L_index < NO_OF_TASKS; L_index++)
+	if (u8_g_init_counter == INIT_SUCCESS)																//check on SOS initialization
+	{
+		if (str_sos_config_task != NULLPTR)																//check on passing nullptr
 		{
-			if (g_database[L_index].u16_task_id == str_sos_config_task->u16_task_id)				//check that the id is not used before
+			if ( (str_sos_config_task->u16_periodicity == INVALID_PERIODICITY)		||					//check on arguments validation
+			(str_sos_config_task->pfTask == NULLPTR)							||
+			(str_sos_config_task->u16_priority > NO_OF_TASKS)					||
+			(str_sos_config_task->u16_task_id > NO_OF_TASKS) )
 			{
 				sos_error_status = SOS_STATUS_INVALID_ARGS;
-				break;
+			}
+			
+			for (u8 L_index = INITIAL_START; L_index < NO_OF_TASKS; L_index++)
+			{
+				if (g_database[L_index].u16_task_id == str_sos_config_task->u16_task_id)				//check that the id is not used before
+				{
+					sos_error_status = SOS_STATUS_INVALID_ARGS;
+					break;
+				}
+			}
+			if (sos_error_status == SOS_STATUS_TASK_ADDED)
+			{
+				g_database[str_sos_config_task->u16_task_id] = *str_sos_config_task;
 			}
 		}
-		if (sos_error_status == SOS_STATUS_TASK_ADDED)
+		else
 		{
-			g_database[str_sos_config_task->u16_task_id] = *str_sos_config_task;
+			 sos_error_status = SOS_STATUS_INVALID_ARGS;
 		}
 	}
 	else
 	{
-		enu_sos_error_status_t  sos_error_status = SOS_STATUS_INVALID_ARGS;
-	}	
+		 sos_error_status = SOS_STATUS_INVALID_STATE;
+	}
+	
 	return sos_error_status;
 }
 
@@ -190,7 +199,7 @@ void sos_run (void)
 	}
 	else
 	{
-		//Don nothing
+		//Do nothing
 	}
 }
 
@@ -210,27 +219,34 @@ enu_sos_error_status_t sos_delete_task (u16 u16_task_id)
 {
 	enu_sos_error_status_t sos_error_status = SOS_STATUS_TASK_DELETED ;
 	
-	if (u16_task_id < NO_OF_TASKS)																	//check that the id is valid
+	if (u8_g_init_counter == INIT_SUCCESS)																//check on SOS initialization
 	{
-		for (u8 L_index = INITIAL_START; L_index < NO_OF_TASKS; L_index++)							//check that the id exists in database
+		if (u16_task_id < NO_OF_TASKS)																	//check that the id is valid
 		{
-			if (g_database[L_index].u16_task_id == u16_task_id)
+			for (u8 L_index = INITIAL_START; L_index < NO_OF_TASKS; L_index++)							//check that the id exists in database
 			{
-				g_database[L_index].pfTask = NULLPTR;
-				g_database[L_index].u16_task_id += NO_OF_TASKS ;
-				sos_error_status = SOS_STATUS_TASK_DELETED ;
-				break;
+				if (g_database[L_index].u16_task_id == u16_task_id)
+				{
+					g_database[L_index].pfTask = NULLPTR;
+					g_database[L_index].u16_task_id += NO_OF_TASKS ;
+					sos_error_status = SOS_STATUS_TASK_DELETED ;
+					break;
+				}
+				else
+				{
+					sos_error_status = SOS_STATUS_INVALID_ARGS;
+				}
 			}
-			else
-			{
-				sos_error_status = SOS_STATUS_INVALID_ARGS;
-			}
+		}
+		else
+		{
+			sos_error_status = SOS_STATUS_INVALID_ARGS;
 		}
 	}
 	else
 	{
-		sos_error_status = SOS_STATUS_INVALID_ARGS;
-	}
+		sos_error_status = SOS_STATUS_INVALID_STATE;
+	}	
 	
 	return sos_error_status;
 }
@@ -250,37 +266,45 @@ enu_sos_error_status_t sos_delete_task (u16 u16_task_id)
 enu_sos_error_status_t sos_modify_task (str_sos_config_task_t* str_sos_config_task)
 {
 	enu_sos_error_status_t sos_error_status = SOS_STATUS_TASK_MODIFIED;
-	if (str_sos_config_task != NULLPTR)																//check on passing nullptr
+	
+	if (u8_g_init_counter == INIT_SUCCESS)																//check on SOS initialization
 	{
-		for (u8 L_index = INITIAL_START; L_index < NO_OF_TASKS; L_index++)										
+		if (str_sos_config_task != NULLPTR)																//check on passing nullptr
 		{
-			if (g_database[L_index].u16_task_id == str_sos_config_task->u16_task_id)				//check that the id exists in database
+			for (u8 L_index = INITIAL_START; L_index < NO_OF_TASKS; L_index++)										
 			{
-				sos_error_status = SOS_STATUS_TASK_MODIFIED;
+				if (g_database[L_index].u16_task_id == str_sos_config_task->u16_task_id)				//check that the id exists in database
+				{
+					sos_error_status = SOS_STATUS_TASK_MODIFIED;
 			
-				if ( (str_sos_config_task->u16_periodicity == INVALID_PERIODICITY)			||		//check on arguments validation
-					 (str_sos_config_task->pfTask == NULLPTR)								||
-					 (str_sos_config_task->u16_priority > NO_OF_TASKS)						||
-					 (str_sos_config_task->u16_task_id > NO_OF_TASKS) )
+					if ( (str_sos_config_task->u16_periodicity == INVALID_PERIODICITY)			||		//check on arguments validation
+						 (str_sos_config_task->pfTask == NULLPTR)								||
+						 (str_sos_config_task->u16_priority > NO_OF_TASKS)						||
+						 (str_sos_config_task->u16_task_id > NO_OF_TASKS) )
+					{
+						sos_error_status = SOS_STATUS_INVALID_ARGS;
+					}
+
+					if (sos_error_status == SOS_STATUS_TASK_MODIFIED)
+					{
+						g_database[str_sos_config_task->u16_task_id] = *str_sos_config_task;
+					}
+					break;	
+				}
+				else
 				{
 					sos_error_status = SOS_STATUS_INVALID_ARGS;
 				}
-
-				if (sos_error_status == SOS_STATUS_TASK_MODIFIED)
-				{
-					g_database[str_sos_config_task->u16_task_id] = *str_sos_config_task;
-				}
-				break;	
 			}
-			else
-			{
-				sos_error_status = SOS_STATUS_INVALID_STATE;
-			}
+		}
+		else
+		{
+			sos_error_status = SOS_STATUS_INVALID_ARGS;
 		}
 	}
 	else
 	{
-		sos_error_status = SOS_STATUS_INVALID_ARGS;
+		sos_error_status = SOS_STATUS_INVALID_STATE;
 	}
 	
 	return sos_error_status;

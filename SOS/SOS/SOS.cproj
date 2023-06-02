@@ -198,13 +198,13 @@
     <Compile Include="SERVICE\sos\sos_cfg.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="SERVIES\memmap.h">
+    <Compile Include="UTILITIES\memmap.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="SERVIES\std_typs.h">
+    <Compile Include="UTILITIES\std_typs.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="SERVIES\utils.h">
+    <Compile Include="UTILITIES\utils.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
